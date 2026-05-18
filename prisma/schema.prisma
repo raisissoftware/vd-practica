@@ -78,3 +78,59 @@ model VerificationToken {
   @@unique([identifier, token])
   @@map(name: "verification_tokens")
 }
+model Questionnaire {
+  id          String                 @id @default(cuid())
+  slug        String                 @unique
+  title       String
+  description String?
+  status      String                 @default("draft") // draft / published
+  category    String
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  versions    QuestionnaireVersion[]
+
+  @@index([slug])
+  @@index([status])
+}
+
+model QuestionnaireVersion {
+  id              String        @id @default(cuid())
+  questionnaireId String
+  versionNumber   Int
+  note            String?
+  createdAt       DateTime      @default(now())
+  questionnaire   Questionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+
+  @@index([questionnaireId])
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  phone     String
+  name      String
+  company   String?
+  source    String   // form / questionnaire / blog
+  sourceId  String?  // form_id, questionnaire_id
+  status    String   @default("new") // new / contacted / qualified / lost
+  notes     Json?    // Stocăm note flexibile ca JSON
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ScoreResult {
+  id              String   @id @default(cuid())
+  responseId      String
+  totalScore      Int
+  maxScore        Int
+  category        Json     // Pentru scorurile pe categorii
+  recommendations Json     // Recomandări generate
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([responseId])
+}
