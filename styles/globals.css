@@ -90,3 +90,10 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+.text-gradient_blue {
+  background: linear-gradient(90deg, #2563eb 0%, #0891b2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

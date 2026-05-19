@@ -78,3 +78,132 @@ model VerificationToken {
   @@unique([identifier, token])
   @@map(name: "verification_tokens")
 }
+
+model Questionnaire {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  title       String
+  description String?
+  status      String     @default("PUBLISHED") // "DRAFT" | "PUBLISHED"
+  createdAt   DateTime   @default(now()) @map(name: "created_at")
+  updatedAt   DateTime   @updatedAt @map(name: "updated_at")
+  questions   Question[]
+  leads       Lead[]
+
+  @@map(name: "questionnaires")
+}
+
+model Question {
+  id                 String               @id @default(cuid())
+  questionnaireId    String               @map(name: "questionnaire_id")
+  type               String               // "TEXT" | "SINGLE_CHOICE" | "MULTIPLE_CHOICE" | "RATING"
+  text               String
+  options            Json?                // Array of options, e.g. ["Comerț", "Servicii"]
+  required           Boolean              @default(false)
+  order              Int
+  ruleGroupsOperator LogicOperator        @default(AND) @map(name: "rule_groups_operator")
+  createdAt          DateTime             @default(now()) @map(name: "created_at")
+  updatedAt          DateTime             @updatedAt @map(name: "updated_at")
+  questionnaire      Questionnaire        @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  responses          ResponseAnswer[]
+  ruleGroups         ConditionalRuleGroup[]
+  sourceConditions   Condition[]          @relation("SourceConditions")
+
+  @@index([questionnaireId])
+  @@map(name: "questions")
+}
+
+model Lead {
+  id              String           @id @default(cuid())
+  questionnaireId String?          @map(name: "questionnaire_id")
+  name            String
+  email           String
+  phone           String?
+  source          String?          // e.g. "questionnaire"
+  createdAt       DateTime         @default(now()) @map(name: "created_at")
+  updatedAt       DateTime         @updatedAt @map(name: "updated_at")
+  questionnaire   Questionnaire?   @relation(fields: [questionnaireId], references: [id], onDelete: SetNull)
+  responses       ResponseAnswer[]
+
+  @@index([questionnaireId])
+  @@map(name: "leads")
+}
+
+model ResponseAnswer {
+  id         String   @id @default(cuid())
+  leadId     String   @map(name: "lead_id")
+  questionId String   @map(name: "question_id")
+  answer     Json     // Selected options or text response
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  updatedAt  DateTime @updatedAt @map(name: "updated_at")
+  lead       Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([leadId, questionId])
+  @@index([leadId])
+  @@index([questionId])
+  @@map(name: "response_answers")
+}
+
+enum LogicOperator {
+  AND
+  OR
+}
+
+enum ConditionOperator {
+  EQUALS
+  NOT_EQUALS
+  CONTAINS
+  NOT_CONTAINS
+  IS_EMPTY
+  IS_NOT_EMPTY
+  GT
+  LT
+  BETWEEN
+  INCLUDES
+  EXCLUDES
+}
+
+model ConditionalRuleGroup {
+  id            String         @id @default(cuid())
+  questionId    String         @map(name: "question_id")
+  question      Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  logicOperator LogicOperator  @map(name: "logic_operator")
+  conditions    Condition[]
+  createdAt     DateTime       @default(now()) @map(name: "created_at")
+  updatedAt     DateTime       @updatedAt @map(name: "updated_at")
+
+  @@index([questionId])
+  @@map(name: "conditional_rule_groups")
+}
+
+model Condition {
+  id               String               @id @default(cuid())
+  ruleGroupId      String               @map(name: "rule_group_id")
+  ruleGroup        ConditionalRuleGroup @relation(fields: [ruleGroupId], references: [id], onDelete: Cascade)
+  sourceQuestionId String               @map(name: "source_question_id")
+  sourceQuestion   Question             @relation("SourceConditions", fields: [sourceQuestionId], references: [id], onDelete: Cascade)
+  operator         ConditionOperator
+  value            String?
+  valueSecondary   String?              @map(name: "value_secondary")
+
+  @@index([ruleGroupId])
+  @@index([sourceQuestionId])
+  @@map(name: "conditions")
+}
+
+model QuestionnaireAnalyticsEvent {
+  id              String   @id @default(cuid())
+  eventType       String   @map(name: "event_type") // QUESTION_SHOWN | QUESTION_HIDDEN | BRANCH_TAKEN | QUESTIONNAIRE_ABANDONED
+  questionnaireId String   @map(name: "questionnaire_id")
+  questionId      String?  @map(name: "question_id")
+  ruleGroupId     String?  @map(name: "rule_group_id")
+  sessionId       String   @map(name: "session_id")
+  metadata        Json?
+  createdAt       DateTime @default(now()) @map(name: "created_at")
+
+  @@index([questionnaireId])
+  @@index([sessionId])
+  @@map(name: "questionnaire_analytics_events")
+}
+
