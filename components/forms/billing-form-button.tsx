@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { generateUserStripe } from "@/actions/generate-user-stripe";
 import { SubscriptionPlan, UserSubscriptionPlan } from "@/types";
 
 import { Button } from "@/components/ui/button";
@@ -18,10 +19,13 @@ export function BillingFormButton({
   subscriptionPlan,
 }: BillingFormButtonProps) {
   let [isPending, startTransition] = useTransition();
+  const generateUserStripeSession = generateUserStripe.bind(
+    null,
+    offer.stripeIds[year ? "yearly" : "monthly"],
+  );
 
-  const stripeSessionAction = () => {
-    console.log("Stripe has been disabled in this project");
-  };
+  const stripeSessionAction = () =>
+    startTransition(async () => await generateUserStripeSession());
 
   const userOffer =
     subscriptionPlan.stripePriceId ===
