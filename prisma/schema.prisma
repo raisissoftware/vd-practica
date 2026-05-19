@@ -78,3 +78,32 @@ model VerificationToken {
   @@unique([identifier, token])
   @@map(name: "verification_tokens")
 }
+
+model Page {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  description String?
+  createdAt   DateTime  @default(now()) @map(name: "created_at")
+  updatedAt   DateTime  @default(now()) @map(name: "updated_at")
+
+  sections    Section[]
+
+  @@map(name: "pages")
+}
+
+model Section {
+  id        String   @id @default(cuid())
+  pageId    String
+  title     String
+  type      String
+  content   Json?
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  updatedAt DateTime @default(now()) @map(name: "updated_at")
+
+  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId])
+  @@map(name: "sections")
+}
