@@ -1,0 +1,207 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.Text
+  session_state     String?
+  createdAt         DateTime @default(now()) @map(name: "created_at")
+  updatedAt         DateTime @default(now()) @map(name: "updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map(name: "accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map(name: "sessions")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now()) @map(name: "created_at")
+  updatedAt     DateTime  @default(now()) @map(name: "updated_at")
+  role          UserRole  @default(USER)
+
+  accounts Account[]
+  sessions Session[]
+
+  stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
+  stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
+  stripePriceId          String?   @map(name: "stripe_price_id")
+  stripeCurrentPeriodEnd DateTime? @map(name: "stripe_current_period_end")
+
+  @@map(name: "users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map(name: "verification_tokens")
+}
+
+// ─── Questionnaire Models ──────────────────────────────────────────────────────
+
+enum QuestionnaireStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum QuestionType {
+  TEXT
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  RATING
+}
+
+model Questionnaire {
+  id          String              @id @default(cuid())
+  slug        String              @unique
+  title       String
+  description String?
+  status      QuestionnaireStatus @default(DRAFT)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  questions Question[]
+  leads     Lead[]
+  analyticsEvents QuestionnaireAnalyticsEvent[]
+
+  @@map("questionnaires")
+}
+
+model Question {
+  id              String       @id @default(cuid())
+  questionnaireId String
+  type            String
+  text            String
+  options         Json?
+  required        Boolean      @default(false)
+  order           Int
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  questionnaire Questionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  ruleGroups    QuestionRuleGroup[]
+  answers       ResponseAnswer[]
+
+  @@index([questionnaireId])
+  @@map("questions")
+}
+
+model QuestionRuleGroup {
+  id            String   @id @default(cuid())
+  questionId    String
+  logicOperator String   @default("AND")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  question   Question            @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  conditions QuestionCondition[]
+
+  @@index([questionId])
+  @@map("question_rule_groups")
+}
+
+model QuestionCondition {
+  id               String  @id @default(cuid())
+  ruleGroupId      String
+  sourceQuestionId String
+  operator         String
+  value            String?
+  valueSecondary   String?
+
+  ruleGroup QuestionRuleGroup @relation(fields: [ruleGroupId], references: [id], onDelete: Cascade)
+
+  @@index([ruleGroupId])
+  @@map("question_conditions")
+}
+
+model Lead {
+  id              String   @id @default(cuid())
+  name            String
+  email           String
+  phone           String?
+  source          String?
+  questionnaireId String?
+  createdAt       DateTime @default(now())
+
+  questionnaire Questionnaire?  @relation(fields: [questionnaireId], references: [id], onDelete: SetNull)
+  answers       ResponseAnswer[]
+
+  @@index([questionnaireId])
+  @@map("leads")
+}
+
+model ResponseAnswer {
+  id         String   @id @default(cuid())
+  leadId     String
+  questionId String
+  answer     String
+  createdAt  DateTime @default(now())
+
+  lead     Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([questionId])
+  @@map("response_answers")
+}
+
+model QuestionnaireAnalyticsEvent {
+  id              String   @id @default(cuid())
+  eventType       String
+  questionnaireId String
+  questionId      String?
+  ruleGroupId     String?
+  sessionId       String?
+  metadata        Json?
+  createdAt       DateTime @default(now())
+
+  questionnaire Questionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+
+  @@index([questionnaireId])
+  @@index([sessionId])
+  @@map("questionnaire_analytics_events")
+}
+
