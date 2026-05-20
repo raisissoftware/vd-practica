@@ -15,6 +15,12 @@ enum UserRole {
   USER
 }
 
+enum AiActionType {
+  BLOG
+  QUESTIONNAIRE
+  SEO
+}
+
 model Account {
   id                String   @id @default(cuid())
   userId            String
@@ -61,6 +67,7 @@ model User {
 
   accounts Account[]
   sessions Session[]
+  aiGenerations AiGenerationHistory[]
 
   stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
   stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
@@ -77,4 +84,83 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map(name: "verification_tokens")
+}
+model Questionnaire {
+  id          String                 @id @default(cuid())
+  slug        String                 @unique
+  title       String
+  description String?
+  status      String                 @default("draft") // draft / published
+  category    String
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  versions    QuestionnaireVersion[]
+
+  @@index([slug])
+  @@index([status])
+}
+
+model QuestionnaireVersion {
+  id              String        @id @default(cuid())
+  questionnaireId String
+  versionNumber   Int
+  note            String?
+  createdAt       DateTime      @default(now())
+  questionnaire   Questionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+
+  @@index([questionnaireId])
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  phone     String
+  name      String
+  company   String?
+  source    String   // form / questionnaire / blog
+  sourceId  String?  // form_id, questionnaire_id
+  status    String   @default("new") // new / contacted / qualified / lost
+  notes     Json?    // Stocăm note flexibile ca JSON
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ScoreResult {
+  id              String   @id @default(cuid())
+  responseId      String
+  totalScore      Int
+  maxScore        Int
+  category        Json     // Pentru scorurile pe categorii
+  recommendations Json     // Recomandări generate
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([responseId])
+}
+
+model AiGenerationHistory {
+  id               String       @id @default(cuid())
+  userId           String
+  actionType       AiActionType
+  
+  prompt           String?      @db.Text
+  response         String?      @db.Text
+  
+  promptTokens     Int          @default(0)
+  completionTokens Int          @default(0)
+  totalTokens      Int          @default(0)
+  estimatedCost    Float?
+  
+  createdAt        DateTime     @default(now())
+  
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([actionType])
+  @@index([createdAt])
+  @@map(name: "ai_generation_history")
 }
