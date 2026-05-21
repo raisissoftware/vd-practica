@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
-export default auth((req) => {
+export function middleware(req: Request) {
   const requestHeaders = new Headers(req.headers);
   const correlationId = requestHeaders.get("x-correlation-id") || crypto.randomUUID();
   requestHeaders.set("x-correlation-id", correlationId);
@@ -11,7 +11,7 @@ export default auth((req) => {
       headers: requestHeaders,
     },
   });
-});
+}
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],

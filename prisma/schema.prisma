@@ -55,12 +55,16 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  password      String?
+  twoFactorEnabled Boolean @default(false)
   createdAt     DateTime  @default(now()) @map(name: "created_at")
   updatedAt     DateTime  @default(now()) @map(name: "updated_at")
   role          UserRole  @default(USER)
 
   accounts Account[]
   sessions Session[]
+  trustedDevices TrustedDevice[]
+  posts    Post[]
 
   stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
   stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
@@ -68,6 +72,20 @@ model User {
   stripeCurrentPeriodEnd DateTime? @map(name: "stripe_current_period_end")
 
   @@map(name: "users")
+}
+
+model TrustedDevice {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  userAgent String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("trusted_devices")
 }
 
 model VerificationToken {
@@ -95,13 +113,15 @@ enum QuestionType {
 }
 
 model Questionnaire {
-  id          String              @id @default(cuid())
-  slug        String              @unique
-  title       String
-  description String?
-  status      QuestionnaireStatus @default(DRAFT)
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  id               String              @id @default(cuid())
+  slug             String              @unique
+  title            String
+  description      String?
+  status           QuestionnaireStatus @default(DRAFT)
+  category         String?
+  estimatedMinutes Int?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 
   questions Question[]
   leads     Lead[]
@@ -116,6 +136,7 @@ model Question {
   type            String
   text            String
   options         Json?
+  validations     Json?
   required        Boolean      @default(false)
   order           Int
   createdAt       DateTime     @default(now())
@@ -164,6 +185,9 @@ model Lead {
   phone           String?
   source          String?
   questionnaireId String?
+  score           Int?
+  level           String?
+  aiReport        Json?
   createdAt       DateTime @default(now())
 
   questionnaire Questionnaire?  @relation(fields: [questionnaireId], references: [id], onDelete: SetNull)
@@ -205,3 +229,20 @@ model QuestionnaireAnalyticsEvent {
   @@map("questionnaire_analytics_events")
 }
 
+// ─── Blog / Content Models ───────────────────────────────────────────────────
+
+model Post {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String   @db.Text
+  excerpt     String?  @db.Text
+  imageUrl    String?
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+
+  @@map("posts")
+}

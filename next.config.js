@@ -29,6 +29,33 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["@prisma/client"],
   },
+  async redirects() {
+    return [
+      // Old english URL → new Romanian listing page
+      {
+        source: "/questionnaires",
+        destination: "/chestionare",
+        permanent: true,
+      },
+      {
+        source: "/questionnaires/public",
+        destination: "/chestionare",
+        permanent: true,
+      },
+      // Old single-page /chestionar → new listing page
+      {
+        source: "/chestionar",
+        destination: "/chestionare",
+        permanent: false,
+      },
+      // Old /chestionar/[slug] → new /chestionare/[slug]
+      {
+        source: "/chestionar/:slug",
+        destination: "/chestionare/:slug",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 const { withSentryConfig } = require("@sentry/nextjs");

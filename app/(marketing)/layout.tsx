@@ -1,5 +1,5 @@
 import { NavBar } from "@/components/layout/navbar";
-import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteFooter } from "@/components/shared/SiteFooter";
 import { NavMobile } from "@/components/layout/mobile-nav";
 
 interface MarketingLayoutProps {

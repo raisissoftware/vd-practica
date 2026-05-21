@@ -2,14 +2,14 @@ import Link from "next/link";
 
 const footerLinks = {
   platforma: [
-    { label: "Questionnaire Builder", href: "/questionnaires" },
+    { label: "Chestionare Digitalizare", href: "/chestionare" },
     { label: "AI Content Generator", href: "/ai-generator" },
     { label: "Lead Management", href: "/leads" },
     { label: "Admin Dashboard", href: "/dashboard" },
   ],
   resurse: [
     { label: "Blog & News", href: "/blog" },
-    { label: "Public Questionnaires", href: "/questionnaires/public" },
+    { label: "Evaluare Gratuită", href: "/chestionare" },
     { label: "Documentation", href: "/docs" },
     { label: "API Reference", href: "/docs/api" },
   ],

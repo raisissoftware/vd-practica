@@ -16,6 +16,7 @@ import { DocsSearch } from "@/components/docs/search";
 import { ModalContext } from "@/components/modals/providers";
 import { Icons } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import { UserAccountNav } from "@/components/layout/user-account-nav";
 
 interface NavBarProps {
   scroll?: boolean;
@@ -101,32 +102,45 @@ export function NavBar({ scroll = false }: NavBarProps) {
           ) : null}
 
           {session ? (
-            <Link
-              href={session.user.role === "ADMIN" ? "/admin" : "/dashboard"}
-              className="hidden md:block"
-            >
-              <Button
-                className="gap-2 px-5"
-                variant="default"
-                size="sm"
-                rounded="full"
+            <div className="hidden items-center gap-3 md:flex">
+              <Link
+                href={session.user.role === "ADMIN" ? "/admin" : "/dashboard"}
               >
-                <span>Dashboard</span>
-              </Button>
-            </Link>
+                <Button
+                  className="gap-1.5 px-4 h-8 rounded-full bg-gradient-to-r from-indigo-600 to-blue-500 text-white shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:scale-[1.03] active:scale-[0.98] transition-all duration-200 font-semibold"
+                  size="sm"
+                >
+                  <span>Dashboard</span>
+                  <Icons.arrowRight className="size-3.5" />
+                </Button>
+              </Link>
+              <UserAccountNav />
+            </div>
           ) : status === "unauthenticated" ? (
-            <Button
-              className="hidden gap-2 px-5 md:flex"
-              variant="default"
-              size="sm"
-              rounded="full"
-              onClick={() => setShowSignInModal(true)}
-            >
-              <span>Sign In</span>
-              <Icons.arrowRight className="size-4" />
-            </Button>
+            <div className="hidden items-center gap-2.5 md:flex">
+              {/* Admin Sign In — secondary, premium ghost style */}
+              <Link
+                href="/login"
+                className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border/70 bg-background px-4 text-sm font-medium text-foreground/80 transition-all duration-200 hover:border-indigo-400/50 hover:bg-indigo-50/50 hover:text-indigo-600 dark:hover:bg-indigo-950/30 dark:hover:text-indigo-400"
+              >
+                <Icons.lock className="size-3.5 opacity-70" />
+                Admin Sign In
+              </Link>
+
+              {/* Start Assessment — primary gradient CTA */}
+              <Link
+                href="/chestionare"
+                className="inline-flex h-8 items-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-600 to-blue-500 px-4 text-sm font-semibold text-white shadow-md shadow-indigo-500/25 transition-all duration-200 hover:shadow-indigo-500/45 hover:scale-[1.04] active:scale-[0.97]"
+              >
+                Start Assessment
+                <Icons.arrowRight className="size-3.5" />
+              </Link>
+            </div>
           ) : (
-            <Skeleton className="hidden h-9 w-28 rounded-full lg:flex" />
+            <div className="hidden items-center gap-2.5 md:flex">
+              <Skeleton className="h-8 w-[108px] rounded-full" />
+              <Skeleton className="h-8 w-[108px] rounded-full" />
+            </div>
           )}
         </div>
       </MaxWidthWrapper>

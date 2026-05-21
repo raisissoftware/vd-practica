@@ -389,7 +389,11 @@ export default function PublicRenderer({
                     <QuestionWrapper visible={true}>
                         <div className="min-h-[160px] flex flex-col justify-center">
                             <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
-                                {questions[step].type === "TEXT" && "Răspuns Text Liber"}
+                                {questions[step].type === "TEXT" && "Răspuns Text Scurt"}
+                                {questions[step].type === "TEXTAREA" && "Răspuns Text Lung"}
+                                {questions[step].type === "NUMERIC" && "Răspuns Numeric"}
+                                {questions[step].type === "PHONE" && "Număr de Telefon"}
+                                {questions[step].type === "DATE" && "Dată calendaristică"}
                                 {questions[step].type === "RATING" && "Evaluare pe Scară"}
                                 {questions[step].type === "SINGLE_CHOICE" && "Selecție Unică"}
                                 {questions[step].type === "MULTIPLE_CHOICE" && "Selecție Multiplă (Alege opțiuni)"}
@@ -401,16 +405,30 @@ export default function PublicRenderer({
                         </div>
 
                         <div className="mt-8">
-                            {/* TEXT OPTION */}
-                            {questions[step].type === "TEXT" && (
-                                <Textarea
-                                    placeholder="Scrie răspunsul tău aici..."
+                            {/* SHORT TEXT / PHONE / NUMERIC / DATE OPTION */}
+                            {["TEXT", "NUMERIC", "PHONE", "DATE"].includes(questions[step].type) && (
+                                <Input
+                                    type={questions[step].type === "NUMERIC" ? "number" : questions[step].type === "PHONE" ? "tel" : questions[step].type === "DATE" ? "date" : "text"}
+                                    placeholder={questions[step].type === "DATE" ? "" : "Scrie răspunsul tău aici..."}
                                     value={answers[questions[step].id] || ""}
                                     onChange={(e) => {
                                         setAnswers((prev) => ({ ...prev, [questions[step].id]: e.target.value }));
                                         setValidationError(null);
                                     }}
-                                    className="min-h-[120px] rounded-2xl bg-card/25 border-input/60 focus:ring-zinc-500 focus-visible:ring-zinc-500 focus:border-zinc-500 transition-all"
+                                    className="h-12 rounded-xl bg-card/25 border-input/60 focus:ring-zinc-500 focus-visible:ring-zinc-500 focus:border-zinc-500 transition-all text-base"
+                                />
+                            )}
+
+                            {/* TEXTAREA OPTION */}
+                            {questions[step].type === "TEXTAREA" && (
+                                <Textarea
+                                    placeholder="Scrie răspunsul tău detaliat aici..."
+                                    value={answers[questions[step].id] || ""}
+                                    onChange={(e) => {
+                                        setAnswers((prev) => ({ ...prev, [questions[step].id]: e.target.value }));
+                                        setValidationError(null);
+                                    }}
+                                    className="min-h-[120px] rounded-2xl bg-card/25 border-input/60 focus:ring-zinc-500 focus-visible:ring-zinc-500 focus:border-zinc-500 transition-all text-base"
                                 />
                             )}
 
@@ -443,7 +461,7 @@ export default function PublicRenderer({
                             )}
 
                             {/* SINGLE CHOICE */}
-                            {questions[step].type === "SINGLE_CHOICE" && questions[step].options && (
+                            {questions[step].type === "SINGLE_CHOICE" && (questions[step].options?.length ?? 0) > 0 && (
                                 <div className="grid gap-3">
                                     {questions[step].options!.map((opt) => {
                                         const isSelected = answers[questions[step].id] === opt;
@@ -470,7 +488,7 @@ export default function PublicRenderer({
                             )}
 
                             {/* MULTIPLE CHOICE */}
-                            {questions[step].type === "MULTIPLE_CHOICE" && questions[step].options && (
+                            {questions[step].type === "MULTIPLE_CHOICE" && (questions[step].options?.length ?? 0) > 0 && (
                                 <div className="grid gap-3">
                                     {questions[step].options!.map((opt) => {
                                         const isSelected = (answers[questions[step].id] || []).includes(opt);

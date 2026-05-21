@@ -1,7 +1,6 @@
 import PostCard from "@/components/blog/PostCard";
 import { BlogSidebar } from "@/components/blog/BlogSidebar";
 import { NewsletterSection } from "@/components/blog/NewsletterSection";
-import { SiteFooter } from "@/components/shared/SiteFooter";
 import type { BlogPost } from "@/types/blog";
 import Link from "next/link";
 
@@ -152,14 +151,13 @@ function Pagination({
 
 // ─── Page (Server Component) ──────────────────────────────────────────────────
 
-export default async function BlogPage({
+export default function BlogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: { page?: string };
 }) {
   // TODO: replace with real fetch from your database / CMS
-  const params = await searchParams;
-  const currentPage = Number(params?.page) || 1;
+  const currentPage = Number(searchParams?.page) || 1;
   const totalPages = 3;
 
   const blogData: BlogPageProps = {
@@ -172,7 +170,6 @@ export default async function BlogPage({
 
   return (
     <>
-      {/* ── Page header ── */}
       <section className="relative py-16 text-center overflow-hidden border-b border-border/50">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_50%_at_50%_60%,rgba(14,165,233,0.07)_0%,transparent_70%)]" />
         <div className="container max-w-4xl mx-auto px-6">
@@ -219,9 +216,6 @@ export default async function BlogPage({
 
       {/* ── Newsletter ── */}
       <NewsletterSection />
-
-      {/* ── Footer ── */}
-      <SiteFooter />
     </>
   );
 }
