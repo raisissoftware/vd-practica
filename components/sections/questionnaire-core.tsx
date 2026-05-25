@@ -662,18 +662,22 @@ export function QuestionnaireCore({ data }: QuestionnaireCoreProps) {
                                 <Calendar className="h-6 w-6 text-zinc-500 dark:text-zinc-400 mb-3" />
                                 <h4 className="font-semibold text-foreground text-sm">Consultanță Gratuită</h4>
                                 <p className="text-xs text-muted-foreground text-center mt-1">Stabilește o discuție de 15 min cu un specialist în digitalizare.</p>
-                                <Button size="sm" className="mt-4 rounded-full bg-zinc-900 hover:bg-zinc-800 text-zinc-50 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold">
-                                    Programează Apel
-                                </Button>
+                                <a href="/contact" className="mt-4 w-full flex justify-center">
+                                    <Button size="sm" className="rounded-full bg-zinc-900 hover:bg-zinc-800 text-zinc-50 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold w-full">
+                                        Programează Apel
+                                    </Button>
+                                </a>
                             </div>
 
                             <div className="flex flex-col items-center rounded-2xl border bg-zinc-500/[0.02] border-zinc-500/20 dark:border-zinc-400/25 p-6">
                                 <Building2 className="h-6 w-6 text-zinc-500 dark:text-zinc-400 mb-3" />
                                 <h4 className="font-semibold text-foreground text-sm">Servicii Personalizate</h4>
                                 <p className="text-xs text-muted-foreground text-center mt-1">Explorează cum putem construi automatizări adaptate 100%.</p>
-                                <Button size="sm" variant="outline" className="mt-4 rounded-full font-semibold border-zinc-500/30 dark:border-zinc-400/30 hover:bg-zinc-500/5 text-zinc-700 dark:text-zinc-300">
-                                    Vezi Servicii
-                                </Button>
+                                <a href="/servicii" className="mt-4 w-full flex justify-center">
+                                    <Button size="sm" variant="outline" className="rounded-full font-semibold border-zinc-500/30 dark:border-zinc-400/30 hover:bg-zinc-500/5 text-zinc-700 dark:text-zinc-300 w-full">
+                                        Vezi Servicii
+                                    </Button>
+                                </a>
                             </div>
                         </div>
 

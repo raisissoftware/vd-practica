@@ -9,6 +9,9 @@ import { BlogPreview } from "@/components/sections/home-redesign/blog-preview";
 import { LeadCaptureForm } from "@/components/sections/home-redesign/lead-capture";
 import { FaqSection } from "@/components/sections/home-redesign/faq-section";
 import { FinalCta } from "@/components/sections/home-redesign/final-cta";
+import { prisma } from "@/lib/db";
+import { format } from "date-fns";
+import { ro } from "date-fns/locale";
 
 export const metadata: Metadata = {
   title: "Digitalizare Afaceri România | Evaluare Maturitate Digitală | VreauDigitalizare",
@@ -50,7 +53,7 @@ export const metadata: Metadata = {
   }
 };
 
-export default function IndexPage() {
+export default async function IndexPage() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -96,6 +99,23 @@ export default function IndexPage() {
     ]
   };
 
+  const latestPostsRaw = await prisma.post.findMany({
+    where: { published: true },
+    include: { category: true },
+    orderBy: { createdAt: "desc" },
+    take: 3,
+  });
+
+  const latestPosts = latestPostsRaw.map((post) => ({
+    title: post.title,
+    category: post.category?.name || "General",
+    excerpt: post.excerpt || "",
+    readTime: `${post.readingTime || 5} min`,
+    href: `/blog/${post.slug}`,
+    date: format(new Date(post.createdAt), "dd MMM yyyy", { locale: ro }),
+    imageUrl: post.imageUrl || null,
+  }));
+
   return (
     <>
       <script
@@ -108,7 +128,7 @@ export default function IndexPage() {
       <HowItWorksTimeline />
       <AssessmentCta />
       <ResultsAndProof />
-      <BlogPreview />
+      <BlogPreview posts={latestPosts} />
       <LeadCaptureForm />
       <FaqSection />
       <FinalCta />

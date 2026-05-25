@@ -1,6 +1,7 @@
 import { NavBar } from "@/components/layout/navbar";
 import { SiteFooter } from "@/components/shared/SiteFooter";
 import { NavMobile } from "@/components/layout/mobile-nav";
+import { SmoothScrollProvider } from "@/components/shared/smooth-scroll-provider";
 
 interface MarketingLayoutProps {
   children: React.ReactNode;
@@ -8,11 +9,13 @@ interface MarketingLayoutProps {
 
 export default function MarketingLayout({ children }: MarketingLayoutProps) {
   return (
-    <div className="flex min-h-screen flex-col">
-      <NavMobile />
-      <NavBar scroll={true} />
-      <main className="flex-1">{children}</main>
-      <SiteFooter />
-    </div>
+    <SmoothScrollProvider>
+      <div className="flex min-h-screen flex-col">
+        <NavMobile />
+        <NavBar scroll={true} />
+        <main className="flex-1">{children}</main>
+        <SiteFooter />
+      </div>
+    </SmoothScrollProvider>
   );
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
+import { revalidatePath } from "next/cache";
 
 // GET /api/admin/posts/[id] — get single post with content
 export async function GET(
@@ -29,7 +30,7 @@ export async function PATCH(
     return new Response("Unauthorized", { status: 401 });
 
   const body = await req.json();
-  const { title, slug, content, excerpt, imageUrl, published } = body;
+  const { title, slug, content, excerpt, seoTitle, seoDesc, tags, imageUrl, published } = body;
 
   // Check slug uniqueness if changing slug
   if (slug) {
@@ -47,6 +48,9 @@ export async function PATCH(
       ...(slug !== undefined && { slug: slug.trim() }),
       ...(content !== undefined && { content }),
       ...(excerpt !== undefined && { excerpt: excerpt?.trim() || null }),
+      ...(seoTitle !== undefined && { seoTitle: seoTitle?.trim() || null }),
+      ...(seoDesc !== undefined && { seoDesc: seoDesc?.trim() || null }),
+      ...(tags !== undefined && { tags: tags || [] }),
       ...(imageUrl !== undefined && { imageUrl: imageUrl?.trim() || null }),
       ...(published !== undefined && { published }),
     },
@@ -55,12 +59,18 @@ export async function PATCH(
       title: true,
       slug: true,
       excerpt: true,
+      seoTitle: true,
+      seoDesc: true,
+      tags: true,
       imageUrl: true,
       published: true,
       createdAt: true,
       updatedAt: true,
     },
   });
+
+  revalidatePath("/blog");
+  revalidatePath("/");
 
   return NextResponse.json(post);
 }

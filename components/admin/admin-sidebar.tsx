@@ -12,11 +12,16 @@ import {
   Settings,
   LogOut,
   CheckCircle2,
+  ExternalLink,
+  Calendar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/shared/logo";
+import { UserAvatar } from "@/components/shared/user-avatar";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard",            icon: LayoutDashboard,  exact: true },
+  { href: "/admin/appointments",   label: "Appointments",   icon: Calendar },
   { href: "/admin/questionnaires", label: "Questionnaires", icon: ClipboardList },
   { href: "/admin/content",        label: "Content",        icon: FileText },
   { href: "/admin/leads",          label: "Leads",          icon: Users },
@@ -37,13 +42,18 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   return (
     <aside className="flex h-full w-[220px] flex-shrink-0 flex-col border-r border-[#EEF0F4] bg-white">
       {/* Logo */}
-      <div className="flex items-center gap-2.5 border-b border-[#EEF0F4] px-4 py-5">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600">
-          <CheckCircle2 className="size-4 text-white" strokeWidth={2.5} />
-        </div>
-        <span className="text-[13px] font-semibold text-slate-900">
-          vreaudigitalizare.eu
-        </span>
+      <div className="flex items-center border-b border-[#EEF0F4] px-4 py-5">
+        <Logo className="w-[160px] h-auto" />
+      </div>
+
+      <div className="px-4 py-3">
+        <Link
+          href="/"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:text-indigo-600"
+        >
+          <ExternalLink className="size-3.5" />
+          Înapoi la Site
+        </Link>
       </div>
 
       {/* Nav */}
@@ -72,9 +82,10 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
 
       {/* User row */}
       <div className="flex items-center gap-2.5 border-t border-[#EEF0F4] px-3.5 py-3">
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[12px] font-bold text-white">
-          {user?.name?.charAt(0)?.toUpperCase() ?? "A"}
-        </div>
+        <UserAvatar
+          user={{ name: user?.name || null, image: user?.image || null }}
+          className="size-8 border flex-shrink-0"
+        />
         <div className="min-w-0 flex-1">
           <p className="truncate text-[12px] font-semibold text-slate-900">
             {user?.name ?? "Admin"}

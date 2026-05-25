@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowRight, Mail, Lock } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { userAuthSchema } from "@/lib/validations/auth";
@@ -36,6 +37,25 @@ export function UserAuthForm({ className, type, ...props }: UserAuthFormProps) {
   const [authStep, setAuthStep] = React.useState<"login" | "2fa">("login");
   const [tempToken, setTempToken] = React.useState<string | null>(null);
 
+  // CAPTCHA state
+  const [captcha, setCaptcha] = React.useState<{ num1: number; num2: number; result: number } | null>(null);
+  const [captchaAnswer, setCaptchaAnswer] = React.useState<string>("");
+  const [captchaError, setCaptchaError] = React.useState<boolean>(false);
+
+  const generateCaptcha = React.useCallback(() => {
+    const num1 = Math.floor(Math.random() * 9) + 1; // 1 to 9
+    const num2 = Math.floor(Math.random() * 9) + 1; // 1 to 9
+    setCaptcha({ num1, num2, result: num1 + num2 });
+    setCaptchaAnswer("");
+    setCaptchaError(false);
+  }, []);
+
+  React.useEffect(() => {
+    if (type !== "register") {
+      generateCaptcha();
+    }
+  }, [type, generateCaptcha]);
+
   const searchParams = useSearchParams();
 
   // ── Redirect after successful full login ──────────────────────────────────
@@ -54,6 +74,18 @@ export function UserAuthForm({ className, type, ...props }: UserAuthFormProps) {
   // ── Step 1: password + 2FA gate ───────────────────────────────────────────
   async function onSubmit(data: FormData) {
     setIsLoading(true);
+
+    // Verify CAPTCHA for logins
+    if (type !== "register") {
+      if (!captcha || parseInt(captchaAnswer) !== captcha.result) {
+        setCaptchaError(true);
+        setIsLoading(false);
+        generateCaptcha();
+        return toast.error("Verificare CAPTCHA eșuată", {
+          description: "Răspunsul la întrebarea de verificare este incorect.",
+        });
+      }
+    }
 
     // Register flow
     if (type === "register") {
@@ -146,9 +178,10 @@ export function UserAuthForm({ className, type, ...props }: UserAuthFormProps) {
 
     if (!signInResult || signInResult.error) {
       setIsLoading(false);
-      return toast.error("Verificare eșuată", {
+      toast.error("Verificare eșuată", {
         description: "Codul introdus este incorect sau a expirat.",
       });
+      return;
     }
 
     handleSuccessRedirect();
@@ -206,26 +239,29 @@ export function UserAuthForm({ className, type, ...props }: UserAuthFormProps) {
             htmlFor="email"
             className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
           >
-            Adresă Email
+            Email address
           </label>
-          <input
-            id="email"
-            type="email"
-            placeholder="nume@companie.ro"
-            autoCapitalize="none"
-            autoComplete="email"
-            autoCorrect="off"
-            disabled={isLoading}
-            className={cn(
-              "h-10 w-full rounded-xl border bg-muted/40 px-3.5 text-sm text-foreground placeholder:text-muted-foreground/45 outline-none transition-all duration-150",
-              "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/15",
-              "disabled:cursor-not-allowed disabled:opacity-50",
-              errors?.email
-                ? "border-rose-400/60"
-                : "border-border/70",
-            )}
-            {...register("email")}
-          />
+          <div className="relative">
+            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/60" />
+            <input
+              id="email"
+              type="email"
+              placeholder="admin@vreaudigitalizare.eu"
+              autoCapitalize="none"
+              autoComplete="email"
+              autoCorrect="off"
+              disabled={isLoading}
+              className={cn(
+                "h-10 w-full rounded-xl border bg-muted/40 pl-10 pr-3.5 text-sm text-foreground placeholder:text-muted-foreground/45 outline-none transition-all duration-150",
+                "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/15",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+                errors?.email
+                  ? "border-rose-400/60"
+                  : "border-border/70",
+              )}
+              {...register("email")}
+            />
+          </div>
           {errors?.email && (
             <p className="text-[11px] font-medium text-rose-500">
               {errors.email.message}
@@ -235,39 +271,24 @@ export function UserAuthForm({ className, type, ...props }: UserAuthFormProps) {
 
         {/* Password */}
         <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between">
-            <label
-              htmlFor="password"
-              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-            >
-              Parolă
-            </label>
-            {type !== "register" && (
-              <button
-                type="button"
-                onClick={() =>
-                  toast.info("Resetare Parolă", {
-                    description:
-                      "Contactează administratorul pentru resetarea parolei.",
-                  })
-                }
-                className="text-[11px] font-semibold text-indigo-500 hover:text-indigo-600 transition-colors"
-              >
-                Ai uitat parola?
-              </button>
-            )}
-          </div>
+          <label
+            htmlFor="password"
+            className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+          >
+            Password
+          </label>
           <div className="relative">
+            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/60" />
             <input
               id="password"
               type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
+              placeholder="Enter your password"
               autoComplete={
                 type === "register" ? "new-password" : "current-password"
               }
               disabled={isLoading}
               className={cn(
-                "h-10 w-full rounded-xl border bg-muted/40 pl-3.5 pr-10 text-sm text-foreground placeholder:text-muted-foreground/45 outline-none transition-all duration-150",
+                "h-10 w-full rounded-xl border bg-muted/40 pl-10 pr-10 text-sm text-foreground placeholder:text-muted-foreground/45 outline-none transition-all duration-150",
                 "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/15",
                 "disabled:cursor-not-allowed disabled:opacity-50",
                 errors?.password ? "border-rose-400/60" : "border-border/70",
@@ -278,7 +299,7 @@ export function UserAuthForm({ className, type, ...props }: UserAuthFormProps) {
               type="button"
               tabIndex={-1}
               onClick={() => setShowPassword((p) => !p)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/75 hover:text-foreground transition-colors"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/75 hover:text-foreground transition-colors"
             >
               {showPassword ? (
                 <EyeOff className="size-4" />
@@ -294,15 +315,60 @@ export function UserAuthForm({ className, type, ...props }: UserAuthFormProps) {
           )}
         </div>
 
+        {/* CAPTCHA Challenge */}
+        {type !== "register" && captcha && (
+          <div className="flex flex-col gap-1.5 mt-0.5">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Confirmă că nu ești robot: {captcha.num1} + {captcha.num2} = ?
+            </label>
+            <input
+              type="number"
+              placeholder="Răspunsul tău"
+              value={captchaAnswer}
+              onChange={(e) => {
+                setCaptchaAnswer(e.target.value);
+                setCaptchaError(false);
+              }}
+              disabled={isLoading}
+              className={cn(
+                "h-10 w-full rounded-xl border bg-muted/40 px-3.5 text-sm text-foreground placeholder:text-muted-foreground/45 outline-none transition-all duration-150",
+                "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/15",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+                captchaError ? "border-rose-400/60" : "border-border/70"
+              )}
+              required
+            />
+          </div>
+        )}
+
+        {/* Remember me & Forgot password link */}
+        {type !== "register" && (
+          <div className="flex items-center justify-between mt-1 text-xs select-none">
+            <label className="flex items-center gap-2 text-muted-foreground font-medium cursor-pointer">
+              <input
+                type="checkbox"
+                disabled={isLoading}
+                className="size-4 rounded border-border/80 bg-muted/40 text-indigo-600 focus:ring-indigo-500/25 cursor-pointer"
+              />
+              <span>Remember me</span>
+            </label>
+            
+            <Link
+              href="/forgot-password"
+              className="font-semibold text-[#2563eb] hover:text-[#1d4ed8] transition-colors"
+            >
+              Forgot password?
+            </Link>
+          </div>
+        )}
+
         {/* Submit */}
         <button
           type="submit"
           disabled={isLoading}
           className={cn(
-            "flex h-10 w-full items-center justify-center gap-2 rounded-xl mt-3",
-            "bg-gradient-to-r from-indigo-600 to-blue-500 px-4 text-sm font-semibold text-white",
-            "shadow-md shadow-indigo-500/25 transition-all duration-200",
-            "hover:shadow-indigo-500/45 hover:scale-[1.01] active:scale-[0.98]",
+            "flex h-11 w-full items-center justify-center gap-2 rounded-xl mt-4 font-semibold text-sm text-white transition-all shadow-md shadow-blue-500/10",
+            "bg-[#2563eb] hover:bg-[#1d4ed8] hover:scale-[1.01] active:scale-[0.98]",
             "disabled:pointer-events-none disabled:opacity-60",
           )}
         >
@@ -310,7 +376,7 @@ export function UserAuthForm({ className, type, ...props }: UserAuthFormProps) {
             <Loader2 className="size-4 animate-spin" />
           ) : (
             <>
-              {type === "register" ? "Creează Cont" : "Conectează-te"}
+              <span>{type === "register" ? "Creează Cont" : "Sign in"}</span>
               <ArrowRight className="size-4" />
             </>
           )}

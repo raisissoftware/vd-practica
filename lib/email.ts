@@ -23,7 +23,7 @@ export const sendVerificationRequest: EmailConfig["sendVerificationRequest"] =
       const { data, error } = await resend.emails.send({
         from: provider.from,
         to:
-          process.env.NODE_ENV === "development"
+          (process.env.NODE_ENV as string) === "development"
             ? "delivered@resend.dev"
             : identifier,
         subject: authSubject,
@@ -53,14 +53,14 @@ export const sendVerificationRequest: EmailConfig["sendVerificationRequest"] =
 export const sendTwoFactorEmail = async (email: string, token: string) => {
   try {
     // If in development with mock API key, just log and bypass to prevent 500 errors
-    if (env.RESEND_API_KEY === "dev-resend-key" || !env.RESEND_API_KEY || process.env.NODE_ENV === "development") {
+    if (env.RESEND_API_KEY === "dev-resend-key" || !env.RESEND_API_KEY || (process.env.NODE_ENV as string) === "development") {
       console.log(`[DEV MODE] Bypassing Resend. Mock 2FA Email sent to ${email} with token: ${token}`);
       return { id: "mock-id" };
     }
 
     const { data, error } = await resend.emails.send({
       from: env.EMAIL_FROM || "onboarding@resend.dev",
-      to: process.env.NODE_ENV === "development" ? "delivered@resend.dev" : email,
+      to: (process.env.NODE_ENV as string) === "development" ? "delivered@resend.dev" : email,
       subject: `Codul tău de verificare (2FA) - ${siteConfig.name}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
@@ -77,7 +77,7 @@ export const sendTwoFactorEmail = async (email: string, token: string) => {
     if (error) {
       console.warn("Resend email warning:", error.message);
       // We don't throw in dev to avoid blocking login, but log it
-      if (process.env.NODE_ENV !== "development") {
+      if ((process.env.NODE_ENV as string) !== "development") {
         throw new Error(error.message);
       }
     }
@@ -85,7 +85,7 @@ export const sendTwoFactorEmail = async (email: string, token: string) => {
   } catch (error) {
     console.error("Error sending 2FA email:", error);
     // In dev, we still want to allow login even if email fails
-    if (process.env.NODE_ENV === "development") return { id: "mock-id" };
+    if ((process.env.NODE_ENV as string) === "development") return { id: "mock-id" };
     throw new Error("Failed to send 2FA email");
   }
 };

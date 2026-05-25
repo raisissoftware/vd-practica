@@ -31,8 +31,10 @@ import {
   Calendar,
   ChevronRight,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AiQuestionnaireSidebar } from "./ai-questionnaire-sidebar";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -524,6 +526,7 @@ function QuestionnaireBuilder({
   const [dirty, setDirty] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [addTypeMenuOpen, setAddTypeMenuOpen] = useState(false);
+  const [showAiSidebar, setShowAiSidebar] = useState(false);
 
   const counterRef = useRef(0);
   const newId = () => `new_${Date.now()}_${counterRef.current++}`;
@@ -658,6 +661,17 @@ function QuestionnaireBuilder({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowAiSidebar(!showAiSidebar)}
+            className={cn(
+              "flex items-center gap-1.5 rounded-lg border px-3 py-2 text-[12px] font-bold transition-colors",
+              showAiSidebar 
+                ? "border-indigo-200 bg-indigo-50 text-indigo-700 shadow-sm" 
+                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+            )}
+          >
+            <Sparkles className="size-3.5" /> AI Assistant
+          </button>
           <a
             href={`/chestionare/${questionnaire.slug}`}
             target="_blank"
@@ -815,6 +829,27 @@ function QuestionnaireBuilder({
             </div>
           )}
         </div>
+
+        {/* AI Sidebar Column */}
+        {showAiSidebar && (
+          <div className="w-[320px] flex-shrink-0 border-l border-slate-200 bg-[#F8F9FC] z-10">
+            <AiQuestionnaireSidebar 
+              onGenerate={(newQuestions) => {
+                const updated = [
+                  ...questions,
+                  ...newQuestions.map((q, idx) => ({
+                    ...q,
+                    id: newId(),
+                    order: questions.length + idx,
+                    validations: null,
+                  }))
+                ];
+                setQuestions(updated);
+                setDirty(true);
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

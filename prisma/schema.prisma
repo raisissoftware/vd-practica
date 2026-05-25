@@ -61,10 +61,22 @@ model User {
   updatedAt     DateTime  @default(now()) @map(name: "updated_at")
   role          UserRole  @default(USER)
 
+  company       String?
+  phone         String?
+  timezone      String?   @default("Europe/Bucharest")
+  language      String?   @default("ro")
+  jobTitle      String?
+
   accounts Account[]
   sessions Session[]
   trustedDevices TrustedDevice[]
+  securityLogs   SecurityLog[]
   posts    Post[]
+  aiHistory AiHistory[]
+  calendarSettings CalendarSettings?
+  availabilities   Availability[]
+  blockedDates     BlockedDate[]
+  appointments     Appointment[]
 
   stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
   stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
@@ -95,6 +107,21 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map(name: "verification_tokens")
+}
+
+model SecurityLog {
+  id        String   @id @default(cuid())
+  userId    String
+  event     String
+  ipAddress String?
+  userAgent String?
+  status    String   @default("SUCCESS") // SUCCESS, FAILED, WARNING
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("security_logs")
 }
 
 // ─── Questionnaire Models ──────────────────────────────────────────────────────
@@ -231,6 +258,19 @@ model QuestionnaireAnalyticsEvent {
 
 // ─── Blog / Content Models ───────────────────────────────────────────────────
 
+model Category {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  articleCount Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  posts Post[]
+
+  @@map("categories")
+}
+
 model Post {
   id          String   @id @default(cuid())
   title       String
@@ -239,10 +279,130 @@ model Post {
   excerpt     String?  @db.Text
   imageUrl    String?
   published   Boolean  @default(false)
+  featured    Boolean  @default(false)
+  views       Int      @default(0)
+  readingTime Int      @default(5)
+  seoTitle    String?
+  seoDesc     String?
+  tags        String[] // Supported in PostgreSQL
+
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
   authorId    String
   author      User     @relation(fields: [authorId], references: [id])
 
+  @@index([categoryId])
+  @@index([authorId])
   @@map("posts")
+}
+
+// ─── AI Models ───────────────────────────────────────────────────────────────
+
+model AiPromptTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  category    String
+  systemMsg   String   @db.Text
+  userMsg     String   @db.Text
+  isFavorite  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("ai_prompt_templates")
+}
+
+model AiHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  action      String
+  prompt      String   @db.Text
+  output      String   @db.Text
+  model       String
+  status      String   @default("COMPLETED")
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("ai_history")
+}
+
+// ─── Booking / Scheduling Models ─────────────────────────────────────────────
+
+enum AppointmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model CalendarSettings {
+  id             String  @id @default(cuid())
+  userId         String  @unique
+  slotDuration   Int     @default(30) // in minutes
+  bufferTime     Int     @default(15) // in minutes
+  noticePeriod   Int     @default(12) // in hours
+  maxDaysAhead   Int     @default(60)
+
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("calendar_settings")
+}
+
+model Availability {
+  id         String   @id @default(cuid())
+  userId     String
+  dayOfWeek  Int      // 0 (Sunday) to 6 (Saturday)
+  startTime  String   // HH:MM
+  endTime    String   // HH:MM
+  isActive   Boolean  @default(true)
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dayOfWeek, startTime, endTime])
+  @@index([userId, dayOfWeek])
+  @@map("availabilities")
+}
+
+model BlockedDate {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime
+  reason    String?
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("blocked_dates")
+}
+
+model Appointment {
+  id             String            @id @default(cuid())
+  adminId        String
+  name           String
+  email          String
+  phone          String?
+  notes          String?           @db.Text
+  startTime      DateTime
+  endTime        DateTime
+  status         AppointmentStatus @default(PENDING)
+
+  googleMeetLink String?
+  zoomLink       String?
+
+  aiPreparation  String?           @db.Text
+  aiSummary      String?           @db.Text
+
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+
+  admin          User              @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId, startTime, endTime])
+  @@index([startTime, endTime, status])
+  @@map("appointments")
 }

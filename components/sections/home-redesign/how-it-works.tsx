@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ClipboardCheck, Rocket, Wrench } from "lucide-react";
+import { motion } from "framer-motion";
 
 const STEPS = [
   {
@@ -28,48 +29,95 @@ const STEPS = [
 ];
 
 export function HowItWorksTimeline() {
+  const containerVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.12
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 80,
+        damping: 15
+      }
+    }
+  };
+
   return (
-    <section className="py-20 md:py-32 bg-background relative overflow-hidden">
-      {/* Decorative grain/noise pattern overlay if needed, handled globally but can add a specific gradient here */}
-      <div className="absolute inset-0 bg-blue-500/[0.02] pointer-events-none" />
+    <section className="py-24 md:py-36 bg-white dark:bg-zinc-950 relative overflow-hidden">
+      {/* Subtle details */}
+      <div className="absolute inset-0 bg-indigo-500/[0.01] pointer-events-none" />
       
-      <div className="mx-auto max-w-7xl px-4 md:px-8 relative">
-        <div className="text-center mb-20 max-w-3xl mx-auto">
-          <h2 className="font-heading text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl mb-6">
-            3 pași până la transformare digitală
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            Digitalizarea este procesul prin care tehnologia devine inima companiei tale. Iată cum lucrăm împreună, transparent și eficient.
-          </p>
+      <div className="mx-auto max-w-7xl px-6 md:px-8 relative">
+        {/* Title Header */}
+        <div className="text-center mb-24 max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5 }}
+          >
+            <span className="text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
+              Procesul Nostru
+            </span>
+            <h2 className="mt-3 font-urban text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl text-slate-900 dark:text-zinc-50 leading-none">
+              3 pași până la transformare
+            </h2>
+            <p className="mt-5 text-base sm:text-lg text-slate-500 dark:text-zinc-400 leading-relaxed text-balance">
+              Digitalizarea este procesul prin care tehnologia devine inima companiei tale. Iată cum lucrăm împreună, transparent și eficient.
+            </p>
+          </motion.div>
         </div>
 
+        {/* Steps container */}
         <div className="relative">
           {/* Connecting line */}
-          <div className="absolute top-12 left-0 right-0 hidden lg:block h-[1px] bg-border" />
+          <div className="absolute top-12 left-0 right-0 hidden lg:block h-[2px] bg-slate-100 dark:bg-zinc-850" />
           
-          <div className="grid gap-12 lg:grid-cols-3 lg:gap-8">
-            {STEPS.map((step, idx) => (
-              <div key={idx} className="relative flex flex-col items-center lg:items-start text-center lg:text-left">
-                {/* Number & Icon node */}
-                <div className="relative z-10 flex h-24 w-24 items-center justify-center rounded-full border-8 border-background bg-card shadow-sm mb-6">
-                  <div className="absolute -top-3 -right-3 flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
-                    {step.number}
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            className="grid gap-12 lg:grid-cols-3 lg:gap-8"
+          >
+            {STEPS.map((step, idx) => {
+              const IconComp = step.icon;
+              return (
+                <motion.div
+                  key={idx}
+                  variants={itemVariants}
+                  className="relative flex flex-col items-center lg:items-start text-center lg:text-left group"
+                >
+                  {/* Number & Icon node */}
+                  <div className="relative z-10 flex h-24 w-24 items-center justify-center rounded-full border-[8px] border-white dark:border-zinc-950 bg-slate-50 dark:bg-zinc-900 shadow-md mb-6 transition-transform duration-300 group-hover:scale-105">
+                    <div className="absolute -top-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white shadow-sm shadow-indigo-600/20">
+                      {step.number}
+                    </div>
+                    <IconComp className="h-7 w-7 text-indigo-600 dark:text-indigo-400" />
                   </div>
-                  <step.icon className="h-8 w-8 text-blue-500" />
-                </div>
-                
-                {/* Badge */}
-                <div className="mb-4 inline-flex items-center rounded-full border border-teal-500/20 bg-teal-500/10 px-3 py-1 text-xs font-semibold text-teal-600 dark:text-teal-400">
-                  Durată: {step.timeframe}
-                </div>
-                
-                <h3 className="mb-3 font-heading text-2xl font-bold">{step.title}</h3>
-                <p className="text-muted-foreground leading-relaxed max-w-sm">
-                  {step.description}
-                </p>
-              </div>
-            ))}
-          </div>
+                  
+                  {/* Timeframe Badge */}
+                  <div className="mb-4 inline-flex items-center rounded-full border border-teal-500/20 bg-teal-500/10 px-3 py-1 text-[11px] font-bold text-teal-700 dark:text-teal-400">
+                    Durată: {step.timeframe}
+                  </div>
+                  
+                  <h3 className="mb-3 font-urban text-xl font-extrabold text-slate-900 dark:text-zinc-50">{step.title}</h3>
+                  <p className="text-slate-555 dark:text-zinc-400 text-sm leading-relaxed max-w-sm font-medium">
+                    {step.description}
+                  </p>
+                </motion.div>
+              );
+            })}
+          </motion.div>
         </div>
       </div>
     </section>

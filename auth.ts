@@ -10,6 +10,9 @@ import { verifyPassword } from "@/lib/auth-utils";
 
 // More info: https://authjs.dev/getting-started/typescript#module-augmentation
 declare module "next-auth" {
+  interface User {
+    role?: UserRole;
+  }
   interface Session {
     user: {
       role: UserRole;
@@ -179,7 +182,7 @@ export const {
     async jwt({ token, user }) {
       console.log("[AUTH CALLBACK] jwt() called with token:", token, "and user:", user);
       
-      if (user) {
+      if (user && user.role) {
         // This only happens on the initial sign in
         token.role = user.role;
       }

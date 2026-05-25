@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 
+import { revalidatePath } from "next/cache";
+
 // GET /api/admin/posts
 export async function GET() {
   const user = await getCurrentUser();
@@ -33,7 +35,7 @@ export async function POST(req: Request) {
     return new Response("Unauthorized", { status: 401 });
 
   const body = await req.json();
-  const { title, slug, content, excerpt, imageUrl, published } = body;
+  const { title, slug, content, excerpt, seoTitle, seoDesc, tags, imageUrl, published } = body;
 
   if (!title?.trim() || !slug?.trim()) {
     return new Response("Title and slug are required", { status: 400 });
@@ -57,6 +59,9 @@ export async function POST(req: Request) {
       slug: slug.trim(),
       content,
       excerpt: excerpt?.trim() || null,
+      seoTitle: seoTitle?.trim() || null,
+      seoDesc: seoDesc?.trim() || null,
+      tags: tags || [],
       imageUrl: imageUrl?.trim() || null,
       published: published ?? false,
       authorId: user.id,
@@ -72,6 +77,9 @@ export async function POST(req: Request) {
       updatedAt: true,
     },
   });
+
+  revalidatePath("/blog");
+  revalidatePath("/");
 
   return NextResponse.json(post, { status: 201 });
 }

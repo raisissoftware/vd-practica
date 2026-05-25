@@ -2,6 +2,63 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 // GET: Fetch the digital maturity questionnaire (auto-seeds if not present)
+const expectedQuestions = [
+    {
+        type: "SINGLE_CHOICE",
+        text: "Cât timp alocă echipa ta zilnic pentru task-uri manuale și introducere de date?",
+        options: ["Mai puțin de 1 oră", "Între 1 și 3 ore", "Mai mult de 3 ore", "Nu știu exact"],
+        required: true,
+        order: 1,
+    },
+    {
+        type: "SINGLE_CHOICE",
+        text: "Care este principalul domeniu de activitate al companiei tale?",
+        options: ["Servicii", "Comerț / Retail", "Producție", "Construcții", "Horeca", "Altul"],
+        required: true,
+        order: 2,
+    },
+    {
+        type: "RATING",
+        text: "Pe o scară de la 1 la 5, cât de digitalizate sunt procesele interne ale companiei în prezent? (1 = complet manual/hârtie, 5 = complet automatizat)",
+        options: null,
+        required: true,
+        order: 3,
+    },
+    {
+        type: "MULTIPLE_CHOICE",
+        text: "Ce instrumente folosiți în prezent pentru managementul clienților (CRM) și vânzări? (Alegeți toate opțiunile aplicabile)",
+        options: ["Excel / Spreadsheet", "CRM dedicat (ex: HubSpot, Salesforce, Pipedrive)", "Agendă fizică / Notițe pe hârtie", "Email / WhatsApp", "Niciunul / Nu avem un flux organizat"],
+        required: true,
+        order: 4,
+    },
+    {
+        type: "SINGLE_CHOICE",
+        text: "Cum gestionați în prezent documentele, contractele și facturile companiei?",
+        options: [
+            "Fizic (pe hârtie, în dosare și bibliorafturi)",
+            "Stocare în Cloud (Google Drive, Dropbox, OneDrive)",
+            "Server local partajat în rețea (Shared Folder / NAS)",
+            "Sistem dedicat de Document Management (DMS / ERP)",
+        ],
+        required: true,
+        order: 5,
+    },
+    {
+        type: "TEXT",
+        text: "Care este principalul blocaj sau provocare în implementarea noilor tehnologii în compania ta?",
+        options: null,
+        required: false,
+        order: 6,
+    },
+    {
+        type: "SINGLE_CHOICE",
+        text: "Care este bugetul estimativ pe care compania l-ar putea aloca pentru digitalizare în următoarele 6 luni?",
+        options: ["Sub 1.000 EUR", "1.000 - 5.000 EUR", "5.000 - 15.000 EUR", "Peste 15.000 EUR"],
+        required: true,
+        order: 7,
+    },
+];
+
 export async function GET() {
     try {
         const slug = "evaluare-maturitate-digitala";
@@ -29,59 +86,8 @@ export async function GET() {
                     },
                 });
 
-                // Define questions to seed
-                const questionsToCreate = [
-                    {
-                        type: "SINGLE_CHOICE",
-                        text: "Care este principalul domeniu de activitate al companiei tale?",
-                        options: ["Servicii", "Comerț / Retail", "Producție", "Construcții", "Horeca", "Altul"],
-                        required: true,
-                        order: 1,
-                    },
-                    {
-                        type: "RATING",
-                        text: "Pe o scară de la 1 la 5, cât de digitalizate sunt procesele interne ale companiei în prezent? (1 = complet manual/hârtie, 5 = complet automatizat)",
-                        options: null,
-                        required: true,
-                        order: 2,
-                    },
-                    {
-                        type: "MULTIPLE_CHOICE",
-                        text: "Ce instrumente folosiți în prezent pentru managementul clienților (CRM) și vânzări? (Alegeți toate opțiunile aplicabile)",
-                        options: ["Excel / Spreadsheet", "CRM dedicat (ex: HubSpot, Salesforce, Pipedrive)", "Agendă fizică / Notițe pe hârtie", "Email / WhatsApp", "Niciunul / Nu avem un flux organizat"],
-                        required: true,
-                        order: 3,
-                    },
-                    {
-                        type: "SINGLE_CHOICE",
-                        text: "Cum gestionați în prezent documentele, contractele și facturile companiei?",
-                        options: [
-                            "Fizic (pe hârtie, în dosare și bibliorafturi)",
-                            "Stocare în Cloud (Google Drive, Dropbox, OneDrive)",
-                            "Server local partajat în rețea (Shared Folder / NAS)",
-                            "Sistem dedicat de Document Management (DMS / ERP)",
-                        ],
-                        required: true,
-                        order: 4,
-                    },
-                    {
-                        type: "TEXT",
-                        text: "Care este principalul blocaj sau provocare în implementarea noilor tehnologii în compania ta?",
-                        options: null,
-                        required: false,
-                        order: 5,
-                    },
-                    {
-                        type: "SINGLE_CHOICE",
-                        text: "Care este bugetul estimativ pe care compania l-ar putea aloca pentru digitalizare în următoarele 6 luni?",
-                        options: ["Sub 1.000 EUR", "1.000 - 5.000 EUR", "5.000 - 15.000 EUR", "Peste 15.000 EUR"],
-                        required: true,
-                        order: 6,
-                    },
-                ];
-
                 await Promise.all(
-                    questionsToCreate.map((q) =>
+                    expectedQuestions.map((q) =>
                         tx.question.create({
                             data: {
                                 questionnaireId: newQuestionnaire.id,
@@ -105,6 +111,67 @@ export async function GET() {
                     },
                 });
             });
+        } else {
+            // Check if database questions need to be synchronized to have the new question / updated order
+            const needsSync = questionnaire.questions.length !== expectedQuestions.length ||
+                              questionnaire.questions[0].text !== expectedQuestions[0].text;
+
+            if (needsSync) {
+                const qId = questionnaire.id;
+                await prisma.$transaction(async (tx) => {
+                    const currentQuestions = await tx.question.findMany({
+                        where: { questionnaireId: qId },
+                    });
+
+                    // Update/Create expected questions
+                    for (const eq of expectedQuestions) {
+                        const match = currentQuestions.find(cq => cq.text === eq.text);
+                        if (match) {
+                            await tx.question.update({
+                                where: { id: match.id },
+                                data: {
+                                    type: eq.type,
+                                    options: eq.options ? (eq.options as any) : null,
+                                    required: eq.required,
+                                    order: eq.order,
+                                }
+                            });
+                        } else {
+                            await tx.question.create({
+                                data: {
+                                    questionnaireId: qId,
+                                    type: eq.type,
+                                    text: eq.text,
+                                    options: eq.options ? (eq.options as any) : undefined,
+                                    required: eq.required,
+                                    order: eq.order,
+                                }
+                            });
+                        }
+                    }
+
+                    // Remove any deleted/extra questions
+                    const expectedTexts = expectedQuestions.map(eq => eq.text);
+                    const extraQuestions = currentQuestions.filter(cq => !expectedTexts.includes(cq.text));
+                    if (extraQuestions.length > 0) {
+                        await tx.question.deleteMany({
+                            where: {
+                                id: { in: extraQuestions.map(q => q.id) }
+                            }
+                        });
+                    }
+                });
+
+                // Re-fetch synchronized questionnaire
+                questionnaire = await prisma.questionnaire.findUniqueOrThrow({
+                    where: { id: qId },
+                    include: {
+                        questions: {
+                            orderBy: { order: "asc" },
+                        },
+                    },
+                });
+            }
         }
 
         // Standardize JSON options parsing for UI consumption
@@ -195,8 +262,22 @@ export async function POST(req: Request) {
             const answerVal = responses[q.id];
             if (answerVal === undefined || answerVal === null) return;
 
-            // Question order 2: Digital Processes Rating
-            if (q.order === 2) {
+            // Question order 1: Manual tasks daily allocation time
+            if (q.order === 1) {
+                const textAnswer = String(answerVal).toLowerCase();
+                if (textAnswer.includes("mai mult de 3 ore")) {
+                    recommendations.push(
+                        "Echipa ta pierde mai mult de 3 ore zilnic cu task-uri manuale. Automatizarea introducerii datelor și sincronizarea sistemelor ar putea reduce acest timp cu peste 80%."
+                    );
+                } else if (textAnswer.includes("între 1 și 3 ore")) {
+                    recommendations.push(
+                        "Alocarea a 1-3 ore zilnic pentru sarcini manuale reprezintă un cost ascuns semnificativ. Implementarea unor fluxuri automate simple de import/export poate economisi zile întregi de muncă în fiecare lună."
+                    );
+                }
+            }
+
+            // Question order 3: Digital Processes Rating
+            if (q.order === 3) {
                 const rating = Number(answerVal);
                 if (!isNaN(rating)) {
                     // Translate 1-5 rating into 0-100%
@@ -210,8 +291,8 @@ export async function POST(req: Request) {
                 }
             }
 
-            // Question order 3: CRM tools (Multiple choice)
-            if (q.order === 3) {
+            // Question order 4: CRM tools (Multiple choice)
+            if (q.order === 4) {
                 const selected = Array.isArray(answerVal) ? answerVal : [answerVal];
                 const hasDedicatedCRM = selected.some((s) => String(s).toLowerCase().includes("crm dedicat"));
                 const hasExcel = selected.some((s) => String(s).toLowerCase().includes("excel"));
@@ -238,8 +319,8 @@ export async function POST(req: Request) {
                 }
             }
 
-            // Question order 4: Document management (Single choice)
-            if (q.order === 4) {
+            // Question order 5: Document management (Single choice)
+            if (q.order === 5) {
                 const textAnswer = String(answerVal).toLowerCase();
                 if (textAnswer.includes("sistem dedicat") || textAnswer.includes("dms") || textAnswer.includes("erp")) {
                     scoreDocs = 100;

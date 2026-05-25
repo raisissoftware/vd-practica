@@ -3,7 +3,8 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { UserAuthForm } from "@/components/forms/user-auth-form";
 import { Icons } from "@/components/shared/icons";
-import { siteConfig } from "@/config/site";
+import { Logo } from "@/components/shared/logo";
+import { BarChart3, Users, Settings, ShieldCheck, ChevronLeft } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Admin Portal | VreauDigitalizare",
@@ -12,90 +13,137 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#f8f9fc] dark:bg-[#0d0f14]">
-      {/* Background gradient mesh */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -top-32 left-1/2 h-[500px] w-[700px] -translate-x-1/2 rounded-full bg-indigo-500/6 blur-[120px]" />
-        <div className="absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full bg-blue-500/5 blur-[100px]" />
-        {/* Subtle dot grid */}
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 overflow-hidden bg-background">
+      
+      {/* Left Side: Brand Preview & Info Panel (Only visible on lg screens and above) */}
+      <div className="hidden lg:flex flex-col justify-between p-12 bg-[#090b11] text-white relative overflow-hidden border-r border-white/5">
+        {/* Glow Spheres */}
+        <div className="absolute -top-[10%] -left-[10%] w-[500px] h-[500px] bg-indigo-500/10 blur-[130px] rounded-full pointer-events-none" />
+        <div className="absolute -bottom-[10%] -right-[10%] w-[500px] h-[500px] bg-blue-600/10 blur-[130px] rounded-full pointer-events-none" />
+        
+        {/* Subtle grid pattern background */}
         <div
-          className="absolute inset-0 opacity-[0.035] dark:opacity-[0.06]"
+          className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{
             backgroundImage: "radial-gradient(circle, #6366f1 1px, transparent 1px)",
             backgroundSize: "28px 28px",
           }}
         />
-      </div>
 
-      {/* Back to home link */}
-      <Link
-        href="/"
-        className="absolute left-6 top-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground md:left-10 md:top-8"
-      >
-        <Icons.chevronLeft className="size-4" />
-        Back to home
-      </Link>
-
-      {/* Login card */}
-      <div className="w-full max-w-[420px] px-4">
-        {/* Logo + brand */}
-        <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-indigo-600 to-blue-500 shadow-lg shadow-indigo-500/25">
-            <Icons.logo className="size-7 text-white" />
+        {/* Brand Header */}
+        <div className="flex items-center gap-3 relative z-10">
+          <Logo className="h-10 md:h-12 brightness-0 invert opacity-90" />
+          <div className="border-l border-white/20 pl-3">
+            <span className="text-[10px] font-bold tracking-[0.2em] text-indigo-400 uppercase block">Admin Portal</span>
           </div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-500/80 mb-1.5">
-            {siteConfig.name}
-          </p>
-          <h1 className="text-[28px] font-bold tracking-tight text-foreground">
-            Admin Portal
-          </h1>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground max-w-[300px]">
-            Secure access for authorized administrators only. Sign in with your credentials.
-          </p>
         </div>
 
-        {/* Card */}
-        <div className="relative rounded-2xl border border-border/60 bg-background/90 shadow-xl shadow-black/5 backdrop-blur-sm dark:border-white/8 dark:bg-[#12151c]/90 dark:shadow-black/30">
-          {/* Top accent line */}
-          <div className="absolute inset-x-0 top-0 h-px rounded-t-2xl bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+        {/* Feature Highlights */}
+        <div className="my-auto max-w-md relative z-10 space-y-10">
+          <div>
+            <h2 className="text-3xl font-extrabold tracking-tight mb-3 text-white leading-tight">
+              Welcome back!
+            </h2>
+            <p className="text-sm text-slate-400">
+              Sign in to access your admin dashboard
+            </p>
+          </div>
 
-          <div className="p-7">
+          <div className="space-y-4">
+            {[
+              {
+                icon: BarChart3,
+                title: "Analytics Overview",
+                desc: "Real-time insights and performance metrics"
+              },
+              {
+                icon: Users,
+                title: "User Management",
+                desc: "Manage users, roles and permissions"
+              },
+              {
+                icon: Settings,
+                title: "System Settings",
+                desc: "Configure your application preferences"
+              }
+            ].map((item, idx) => (
+              <div key={idx} className="flex gap-4 p-4 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-md transition-all hover:bg-white/[0.04]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400">
+                  <item.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm text-white">{item.title}</h4>
+                  <p className="text-xs text-slate-400 mt-0.5">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Testimonial Quote */}
+        <div className="relative z-10 p-5 rounded-2xl border border-white/5 bg-white/[0.01] backdrop-blur-md max-w-md">
+          <p className="text-xs italic text-slate-300 leading-relaxed">
+            &quot;The best admin experience I&apos;ve used.&quot;
+          </p>
+          <span className="block text-[10px] font-bold text-indigo-400 uppercase tracking-wider mt-3">
+            — Admin User
+          </span>
+        </div>
+      </div>
+
+      {/* Right Side: Login Form panel */}
+      <div className="flex flex-col justify-center items-center p-8 lg:p-12 w-full bg-[#f8f9fc] dark:bg-[#090b11] relative">
+        {/* Ambient background glows for mobile screen depth */}
+        <div className="absolute top-0 right-0 h-[400px] w-[400px] rounded-full bg-indigo-500/5 blur-[100px] pointer-events-none lg:hidden" />
+        
+        {/* Back home link */}
+        <Link
+          href="/"
+          className="absolute right-6 top-6 inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground md:right-10 md:top-8"
+        >
+          <ChevronLeft className="size-4" />
+          Back to home
+        </Link>
+
+        <div className="w-full max-w-[400px] space-y-8 relative z-10">
+          
+          {/* Logo preview for mobile views */}
+          <div className="flex items-center gap-3 lg:hidden mb-2">
+            <Logo className="h-8" />
+            <div className="border-l border-border/60 pl-2.5">
+              <span className="text-[9px] font-bold tracking-[0.15em] text-indigo-500 uppercase block">Admin</span>
+            </div>
+          </div>
+
+          {/* Form Header */}
+          <div className="space-y-2 text-left">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              Sign in to your account
+            </h1>
+            <p className="text-xs text-muted-foreground">
+              Enter your credentials to continue
+            </p>
+          </div>
+
+          {/* Form wrapper */}
+          <div className="relative rounded-2xl border border-border/60 bg-background shadow-xl shadow-black/5 dark:border-white/5 dark:bg-[#12151c] p-6">
+            {/* Gradient accent line */}
+            <div className="absolute inset-x-0 top-0 h-px rounded-t-2xl bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+            
             <Suspense>
               <UserAuthForm />
             </Suspense>
           </div>
-        </div>
 
-        {/* Footer note */}
-        <p className="mt-6 text-center text-xs text-muted-foreground/70">
-          Protected by enterprise-grade security.{" "}
-          <Link
-            href="/register"
-            className="underline underline-offset-4 transition-colors hover:text-foreground"
-          >
-            Request access
-          </Link>
-        </p>
+          {/* Security badge footer */}
+          <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground/80">
+            <ShieldCheck className="h-4 w-4 text-indigo-500 shrink-0" />
+            <span>Secure access protected by enterprise-grade security</span>
+          </div>
 
-        {/* Trust badges */}
-        <div className="mt-8 flex items-center justify-center gap-6">
-          {[
-            { icon: "🔒", label: "SOC 2 Type II" },
-            { icon: "🛡️", label: "GDPR Compliant" },
-            { icon: "✅", label: "99.9% Uptime" },
-          ].map((badge) => (
-            <div
-              key={badge.label}
-              className="flex flex-col items-center gap-1"
-            >
-              <span className="text-base">{badge.icon}</span>
-              <span className="text-[10px] font-medium text-muted-foreground/60 tracking-wide">
-                {badge.label}
-              </span>
-            </div>
-          ))}
         </div>
       </div>
+
     </div>
   );
 }

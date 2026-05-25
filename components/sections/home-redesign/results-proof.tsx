@@ -66,7 +66,7 @@ export function ResultsAndProof() {
               <div key={idx} className="relative flex flex-col p-8 rounded-2xl bg-background border border-border/50 shadow-sm transition-hover hover:border-blue-500/30">
                 <Quote className="absolute top-6 right-6 h-8 w-8 text-blue-500/10 rotate-180" />
                 <p className="text-foreground/80 leading-relaxed mb-8 flex-1 italic">
-                  "{test.quote}"
+                  &ldquo;{test.quote}&rdquo;
                 </p>
                 <div className="flex items-center gap-4 mt-auto">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10 text-blue-600 font-bold text-lg">

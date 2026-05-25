@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/shared/logo";
 
 const footerLinks = {
   platforma: [
@@ -31,23 +32,8 @@ export function SiteFooter() {
           {/* ── Brand ── */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 group">
-              {/* Logo icon */}
-              <div className="flex size-8 items-center justify-center rounded-lg bg-sky-500">
-                <svg
-                  className="size-4 text-white"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <span className="text-sm font-bold text-white group-hover:text-sky-400 transition-colors">
+              <Logo showText={false} className="size-8 text-indigo-500 group-hover:text-indigo-400 transition-colors" />
+              <span className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">
                 vreaudigitalizare.eu
               </span>
             </Link>

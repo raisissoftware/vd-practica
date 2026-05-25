@@ -1,8 +1,20 @@
 "use client";
 
 import React from "react";
+import { motion } from "framer-motion";
 import { ArrowRight, BarChart3, Cloud, Code2, Cpu, LineChart, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 const SERVICES = [
   {
@@ -50,53 +62,159 @@ const SERVICES = [
 ];
 
 export function ServicesGrid() {
+  const containerVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.08
+      }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 35 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 80,
+        damping: 15
+      }
+    }
+  };
+
+  // Mouse Glow Spotlight Effect
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const { currentTarget, clientX, clientY } = e;
+    const { left, top } = currentTarget.getBoundingClientRect();
+    currentTarget.style.setProperty("--mouse-x", `${clientX - left}px`);
+    currentTarget.style.setProperty("--mouse-y", `${clientY - top}px`);
+  };
+
   return (
-    <section id="servicii" className="py-20 md:py-32 relative">
-      <div className="mx-auto max-w-7xl px-4 md:px-8">
-        <div className="mb-16 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="max-w-2xl">
-            <h2 className="font-heading text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+    <section id="servicii" className="py-24 md:py-36 relative overflow-hidden bg-white/40 dark:bg-zinc-950/10">
+      {/* Background ambient spots */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <div className="absolute top-[20%] left-[-10%] h-[500px] w-[500px] rounded-full bg-indigo-500/5 blur-3xl opacity-50" />
+        <div className="absolute bottom-[20%] right-[-10%] h-[500px] w-[500px] rounded-full bg-blue-500/5 blur-3xl opacity-50" />
+      </div>
+
+      <div className="mx-auto max-w-7xl px-6 md:px-8">
+        {/* Title Header */}
+        <div className="mb-20 max-w-3xl">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5 }}
+          >
+            <span className="text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
+              Serviciile Noastre
+            </span>
+            <h2 className="mt-3 font-urban text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl text-slate-900 dark:text-zinc-50 leading-none">
               Ce facem concret
             </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              De la auditul inițial până la implementarea soluțiilor, suntem partenerul tău tehnologic pe termen lung.
+            <p className="mt-5 text-base sm:text-lg text-slate-500 dark:text-zinc-400 leading-relaxed text-balance">
+              De la auditul inițial al proceselor interne până la implementarea de soluții avansate, acoperim întreg spectrul transformării digitale pentru afacerea ta.
             </p>
-          </div>
+          </motion.div>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {SERVICES.map((service, idx) => (
-            <div 
-              key={idx}
-              className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/20 p-8 transition-all hover:bg-card/40 hover:border-blue-500/30"
-            >
-              <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10 text-blue-500 transition-colors group-hover:bg-blue-500 group-hover:text-white">
-                <service.icon className="h-6 w-6" />
-              </div>
-              
-              <h3 className="mb-3 font-heading text-xl font-bold">{service.title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-6 flex-1 transition-all group-hover:opacity-0 group-hover:-translate-y-2 duration-300">
-                {service.description}
-              </p>
-              
-              {/* Hover Reveal Benefit */}
-              <div className="absolute inset-x-8 top-[140px] opacity-0 translate-y-4 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
-                <p className="text-sm font-medium text-blue-400">
-                  {service.benefit}
-                </p>
-              </div>
+        {/* Feature Cards Grid */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {SERVICES.map((service, idx) => {
+            const IconComp = service.icon;
+            return (
+              <motion.div
+                key={idx}
+                variants={cardVariants}
+                onMouseMove={handleMouseMove}
+                className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200/50 bg-white/40 p-8 shadow-sm backdrop-blur-md transition-all duration-300 hover:shadow-lg hover:-translate-y-1.5 hover:bg-white hover:border-indigo-500/25 dark:border-zinc-800/40 dark:bg-zinc-900/20 dark:hover:bg-zinc-900/55 dark:hover:border-indigo-400/25"
+              >
+                {/* Mouse spotlight overlay */}
+                <div
+                  className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(280px_circle_at_var(--mouse-x)_var(--mouse-y),rgba(99,102,241,0.06),transparent_80%)]"
+                />
 
-              <div className="mt-auto pt-4 border-t border-border/50">
-                <Link 
-                  href={service.href}
-                  className="inline-flex items-center text-sm font-semibold text-foreground transition-colors hover:text-blue-500"
-                >
-                  Află mai mult <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
+                {/* Animated Icon Circle */}
+                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 shadow-sm border border-slate-100/50 dark:border-zinc-800 transition-all duration-300 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white dark:group-hover:bg-indigo-500">
+                  <IconComp className="h-5 w-5" />
+                </div>
+
+                {/* Header & Description */}
+                <h3 className="mb-3 font-urban text-lg font-bold text-slate-900 dark:text-zinc-50">
+                  {service.title}
+                </h3>
+                
+                {/* Layout holding description and benefit */}
+                <div className="relative min-h-[75px] mb-6 flex-1 overflow-hidden">
+                  {/* Default description */}
+                  <p className="text-slate-500 text-[13px] leading-relaxed dark:text-zinc-400 transition-all duration-300 group-hover:opacity-0 group-hover:-translate-y-2">
+                    {service.description}
+                  </p>
+                  
+                  {/* Animated Reveal Benefit on Hover */}
+                  <p className="absolute inset-0 text-[13px] font-semibold text-indigo-600 dark:text-indigo-400 leading-relaxed opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
+                    {service.benefit}
+                  </p>
+                </div>
+
+                {/* Learn More Trigger Modal */}
+                <div className="pt-4 border-t border-slate-150 dark:border-zinc-850">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button className="inline-flex items-center text-xs font-bold text-slate-700 hover:text-indigo-600 dark:text-zinc-300 dark:hover:text-indigo-400 transition-colors group/btn">
+                        Află mai mult
+                        <ArrowRight className="ml-1.5 h-3.5 w-3.5 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[420px] rounded-2xl border-slate-200/60 dark:border-zinc-800 dark:bg-zinc-950">
+                      <DialogHeader>
+                        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400">
+                          <IconComp className="h-6 w-6" />
+                        </div>
+                        <DialogTitle className="text-2xl font-bold tracking-tight text-slate-900 dark:text-zinc-50">
+                          {service.title}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm pt-3 leading-relaxed text-slate-500 dark:text-zinc-400">
+                          {service.description}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="py-4">
+                        <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/30 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/30 leading-relaxed">
+                          ✨ {service.benefit}
+                        </p>
+                        <div className="mt-5">
+                          <p className="text-xs text-slate-450 dark:text-zinc-400 leading-relaxed">
+                            Programează o discuție gratuită cu unul dintre consultanții noștri pentru a stabili cum putem implementa acest serviciu în afacerea ta.
+                          </p>
+                        </div>
+                      </div>
+                      <DialogFooter className="sm:justify-end gap-2">
+                        <Link 
+                          href="/contact" 
+                          className={cn(
+                            buttonVariants({ rounded: "full" }),
+                            "w-full sm:w-auto bg-indigo-600 text-white hover:bg-indigo-500 font-bold text-xs h-10 px-4 inline-flex items-center justify-center"
+                          )}
+                        >
+                          Programează un Apel
+                        </Link>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
       </div>
     </section>
   );

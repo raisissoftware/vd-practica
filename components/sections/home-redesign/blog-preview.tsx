@@ -3,35 +3,21 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowRight, Clock } from "lucide-react";
+import Image from "next/image";
 
-const ARTICLES = [
-  {
-    title: "Cum să îți alegi primul sistem ERP pentru afacerea ta",
-    category: "Ghiduri",
-    excerpt: "Ghid complet pentru companiile cu 10-50 de angajați care vor să renunțe la haosul din Excel-uri.",
-    readTime: "5 min",
-    href: "/blog/alegere-sistem-erp",
-    date: "12 Oct 2023",
-  },
-  {
-    title: "Top 3 procese pe care le poți automatiza chiar azi",
-    category: "Automatizări",
-    excerpt: "De la facturare până la comunicarea cu clienții, află ce poți delega tehnologiei cu costuri minime.",
-    readTime: "3 min",
-    href: "/blog/procese-automatizare-azi",
-    date: "05 Nov 2023",
-  },
-  {
-    title: "Securitatea cibernetică pentru IMM-uri: Măsuri esențiale",
-    category: "Securitate",
-    excerpt: "Protejează-ți baza de date și evită atacurile ransomware cu aceste bune practici implementabile rapid.",
-    readTime: "7 min",
-    href: "/blog/securitate-imm",
-    date: "20 Noi 2023",
-  },
-];
+interface BlogPreviewProps {
+  posts: {
+    title: string;
+    category: string;
+    excerpt: string;
+    readTime: string;
+    href: string;
+    date: string;
+    imageUrl?: string | null;
+  }[];
+}
 
-export function BlogPreview() {
+export function BlogPreview({ posts }: BlogPreviewProps) {
   return (
     <section className="py-24 bg-background">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
@@ -53,12 +39,22 @@ export function BlogPreview() {
         </div>
 
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {ARTICLES.map((article, idx) => (
+          {posts.map((article, idx) => (
             <Link 
               key={idx} 
               href={article.href}
               className="group flex flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/10 transition-all hover:bg-card/40 hover:shadow-lg hover:border-border"
             >
+              {article.imageUrl && (
+                <div className="relative h-48 w-full overflow-hidden bg-muted">
+                  <Image
+                    src={article.imageUrl}
+                    alt={article.title}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+              )}
               <div className="p-6 flex flex-col h-full">
                 <div className="flex items-center justify-between mb-4">
                   <span className="inline-flex items-center rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-600 dark:text-blue-400">
@@ -69,10 +65,10 @@ export function BlogPreview() {
                   </div>
                 </div>
                 
-                <h3 className="mb-3 font-heading text-xl font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <h3 className="mb-3 font-heading text-xl font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
                   {article.title}
                 </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-6 flex-1">
+                <p className="text-muted-foreground text-sm leading-relaxed mb-6 flex-1 line-clamp-3">
                   {article.excerpt}
                 </p>
                 
